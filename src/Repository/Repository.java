@@ -3,12 +3,10 @@ package Repository;
 import Models.*;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Repository {
 
@@ -194,6 +192,8 @@ public class Repository {
         return -1;
     }
 
+
+    // metoder för att mappa ordrar
     public List<Customer> getAllCustomers() throws IOException {
         prop.load(new FileInputStream(propertiesPath));
         List<Customer> listOfCustomers = new ArrayList<>();
@@ -226,7 +226,6 @@ public class Repository {
 
         return listOfCustomers;
     }
-
 
     public List<Shoe> getAllShoes() throws IOException {
         prop.load(new FileInputStream(propertiesPath));
@@ -302,20 +301,23 @@ public class Repository {
                              "inner join shoe on shoe.id = ordermap.shoeId;");
         ) {
 
-              //lägg till sko/kund från lista med
-            Customer customer = new Customer();
-            Shoe shoe = new Shoe();
+            //lägg till sko/kund från lista med
 
             while (rs.next()) {
+                Customer customer = new Customer();
+                Shoe shoe = new Shoe();
+
                 final int customerId = rs.getInt("customerId");
                 final List<Customer> matchedCustomer = c.stream().filter(cu -> cu.getId() == customerId).toList();
                 if (matchedCustomer.size() == 1)
                     customer = matchedCustomer.get(0);
+                System.out.println(customer.getFirstName());
 
                 final int shoeId = rs.getInt("shoeId");
-                final List<Shoe> matchedShoe = getAllShoes();
+                final List<Shoe> matchedShoe = s.stream().filter(sh -> sh.getId() == shoeId).toList();
                 if (matchedShoe.size() == 1)
                     shoe = matchedShoe.get(0);
+                System.out.println(shoe.getModel());
 
                 final Orders order = new Orders(
                         rs.getInt("orderId"),
