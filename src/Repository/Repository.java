@@ -90,53 +90,6 @@ public class Repository {
         return customer;
     }
 
-    public List<Shoe> getAllProducts() throws IOException {
-        //läs in all relevant data för att visa upp produkter för kund
-        // skomodell, märke, färg, pris
-
-        prop.load(new FileInputStream(propertiesPath));
-        final List<Shoe> shoes = new ArrayList<>();
-
-        try (Connection con = DriverManager.getConnection(
-                prop.getProperty("connectionString"),
-                prop.getProperty("username"),
-                prop.getProperty("password"));
-             Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery("" +
-                     "select shoe.id as ShoeId, shoe.modelName as ModelName, " +
-                     "brand.id as BrandId, brand.name as BrandName, \n" +
-                     "color.id as ColorId, color.name ColorName, shoe.price as Price, \n" +
-                     "size.id as SizeId, size.eu as Size, balance as Balance\n" +
-                     "from shoe\n" +
-                     "inner join brand on brand.id = shoe.brandid\n" +
-                     "inner join color on color.id = shoe.colorId\n" +
-                     "inner join size on size.id = shoe.sizeId;");
-        ) {
-
-            // ShoeId, ModelName, *BrandId, BrandName,
-            // ColorId, ColorName, Price, SizeId, Size, Balance
-            while (rs.next()) {
-
-                //lägg till de värden till sko-objekt som inte är fk
-                // spara fk till resp objekt
-                //lägg dessa objekt i ovan sko-objekt
-                //returnera en lista eller map med alla skor
-                Brand brand = new Brand(rs.getInt("BrandId"), rs.getString("BrandName"));
-                Color color = new Color(rs.getInt("ColorId"), rs.getString("ColorName"));
-                Size size = new Size(rs.getInt("SizeId"), rs.getInt("Size"));
-                Shoe shoe = new Shoe(rs.getInt("ShoeId"), rs.getString("ModelName"),
-                        brand, color, rs.getInt("Price"), size, rs.getInt("Balance"));
-
-                shoes.add(shoe);
-
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return shoes;
-    }
-
     public List<CategoryMap> getListOfCategoryMap() throws IOException {
         //läs in all relevant data för att visa upp produkter för kund
         // skomodell, märke, färg, pris
@@ -170,8 +123,6 @@ public class Repository {
 
             while (rs.next()) {
                 final Category category = new Category(rs.getInt("CategoryId"), rs.getString("CategoryName"));
-                final String categoryName = category.getName();
-
                 final Brand brand = new Brand(rs.getInt("BrandId"), rs.getString("BrandName"));
                 final Color color = new Color(rs.getInt("ColorId"), rs.getString("ColorName"));
                 final Size size = new Size(rs.getInt("SizeId"), rs.getInt("Size"));

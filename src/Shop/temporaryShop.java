@@ -50,6 +50,7 @@ public class temporaryShop {
         final String searchWord = sc.next();
 
         final List<Shoe> shoesByAttribute = doFiltering(filter, searchWord, shoesByCategory);
+        System.out.println(shoesByAttribute.get(0));
         printListOfShoes(shoesByAttribute);
         System.out.println();
 
@@ -75,10 +76,10 @@ public class temporaryShop {
 
         List<Shoe> filteredShoes = new ArrayList<>();
 
-        switch (filter){
-            case 1 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaColor);
+        switch (filter) {
+            case 1 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaSize);
             case 2 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaBrand);
-            case 3 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaSize);
+            case 3 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaColor);
 
         }
         return filteredShoes;
@@ -115,20 +116,17 @@ public class temporaryShop {
     //printing methods - ändra utskrift till joining el dylikt
     public void printListOfShoes(List<Shoe> list) {
 
-        String result = IntStream.range(0, list.size())
-                .mapToObj(i -> (i + 1) + ". " + list.get(i).getBrand().getName()
-                        + " " + list.get(i).getModel() + " " + list.get(i).getColor().getName()
-                        + " strl " + list.get(i).getSize().getEu()
-                        + " " + list.get(i).getPrice() + "kr")
+        final List<Shoe> tempList = list.stream().filter(a -> a.getBalance()>0).toList();
+
+        String result = IntStream.range(0, tempList.size())
+                .mapToObj(i -> (i + 1) + ". " + tempList.get(i).getBrand().getName()
+                        + ", " + tempList.get(i).getModel() + ", " + tempList.get(i).getColor().getName()
+                        + ", strl " + tempList.get(i).getSize().getEu()
+                        + ", " + tempList.get(i).getPrice() + "kr, " + tempList.get(i).getBalance() + " st")
                 .collect(Collectors.joining("\n"));
 
         System.out.println(result);
 
-
-//        list.stream().map(a -> a.getBrand().getName()
-//                + " " + a.getModel() + " " + a.getColor().getName()
-//                + " strl " + a.getSize().getEu()
-//                + " " + a.getPrice() + "kr").forEach(System.out::println);
     }
 
 
