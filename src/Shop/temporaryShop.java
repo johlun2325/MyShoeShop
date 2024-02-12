@@ -15,6 +15,11 @@ public class temporaryShop {
     final Repository r = new Repository();
     final Scanner sc = new Scanner(System.in);
 
+    //varje funktion i variabel tar en sko och kollar om attribut = sökord, returns boolean. predicate
+    final FilterOnAttribute foaColor = (shoe, word) -> shoe.getColor().getName().equalsIgnoreCase(word);
+    final FilterOnAttribute foaBrand = (shoe, word) -> shoe.getBrand().getName().equalsIgnoreCase(word);
+    final FilterOnAttribute foaSize = (shoe, word) -> shoe.getSize().getEu() == Integer.parseInt(word);
+
 
     public temporaryShop() throws IOException {
         //logga in kund
@@ -44,7 +49,7 @@ public class temporaryShop {
         System.out.print("ange " + filter + ": ");
         final String searchWord = sc.next();
 
-        final List<Shoe> shoesByAttribute = filterOnAttribute(filter, shoesByCategory, searchWord);
+        final List<Shoe> shoesByAttribute = doFiltering(filter, searchWord, shoesByCategory);
         printListOfShoes(shoesByAttribute);
         System.out.println();
 
@@ -63,33 +68,25 @@ public class temporaryShop {
         r.callAddToCart(getOrderId, customer.getId(), shoeToOrder.getId());
 
 
-        //varje funktion i variabel tar en sko och kollar om attribut = sökord
-        FilterOnAttribute foaColor = (shoe, word) -> shoe.getColor().getName().equalsIgnoreCase(word);
-        FilterOnAttribute foaBrand = (shoe, word) -> shoe.getColor().getName().equalsIgnoreCase(word);
-        FilterOnAttribute foaSize = (shoe, word) -> shoe.getColor().getName().equalsIgnoreCase(word);
-
     }
 
-    //filtering metod som innehåller filtreringen och tar in sökord och interface
-//    public void doFiltering(List<Shoe> list, String searchWord, Shoe shoe, FilterOnAttribute foa) {
-//        list = list.stream().filter(f -> foa.filter(f, searchWord)).toList();
-//
-//    }
+    //    filtering metod som innehåller filtreringen och tar in sökord och interface
+    public List<Shoe> doFiltering(int filter, String wordToSearchFor, List<Shoe> list) {
 
-    //fixa higher order function på denna
-    public List<Shoe> filterOnAttribute(int filter, List<Shoe> list, String searchWord) {
-        List<Shoe> listOf = new ArrayList<>();
-        switch (filter) {
-            case 1 -> {
-                final int size = Integer.parseInt(searchWord);
-                listOf = list.stream().filter(a -> a.getSize().getEu() == size).toList();
-            }
-            case 2 -> listOf = list.stream()
-                    .filter(a -> a.getBrand().getName().equalsIgnoreCase(searchWord)).toList();
-            case 3 -> listOf = list.stream().filter(a -> a.getColor().getName().equalsIgnoreCase(searchWord)).toList();
-            default -> System.out.println("Du har inte angett ett korrekt menyval.");
+        List<Shoe> filteredShoes = new ArrayList<>();
+
+        switch (filter){
+            case 1 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaColor);
+            case 2 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaBrand);
+            case 3 -> filteredShoes = filterOnAttribute(list, wordToSearchFor, foaSize);
+
         }
-        return listOf;
+        return filteredShoes;
+    }
+
+    //                final int size = Integer.parseInt(searchWord);
+    public List<Shoe> filterOnAttribute(List<Shoe> list, String searchWord, FilterOnAttribute foa) {
+        return list.stream().filter(a -> foa.filter(a, searchWord)).toList();
     }
 
     public Shoe getShoeToOrder(List<Shoe> list, int index) {

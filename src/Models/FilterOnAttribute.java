@@ -4,5 +4,5 @@ import java.util.List;
 
 @FunctionalInterface
 public interface FilterOnAttribute {
-     void filter(Shoe shoe, String searchword);
+     boolean filter(Shoe shoe, String searchword);
 }
