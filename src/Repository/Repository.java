@@ -158,8 +158,10 @@ public class Repository {
             stmt.setInt(3, shoeId);
             stmt.executeQuery();
 
+            System.out.println("Beställningen har genomförts!");
+
         } catch (SQLException e) {
-            e.printStackTrace();
+
             throw new RuntimeException();
         }
 

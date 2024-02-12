@@ -15,63 +15,82 @@ public class temporaryShop {
     final Repository r = new Repository();
     final Scanner sc = new Scanner(System.in);
 
-    //varje funktion i variabel tar en sko och kollar om attribut = sökord, returns boolean. predicate
+    //Varje funktion i variabel tar en sko och kollar om attribut = sökord, returns boolean(Predicate)
     final FilterOnAttribute foaColor = (shoe, word) -> shoe.getColor().getName().equalsIgnoreCase(word);
     final FilterOnAttribute foaBrand = (shoe, word) -> shoe.getBrand().getName().equalsIgnoreCase(word);
     final FilterOnAttribute foaSize = (shoe, word) -> shoe.getSize().getEu() == Integer.parseInt(word);
 
 
-    public temporaryShop() throws IOException {
-        //logga in kund
-        final List<String> loginDetails = getLoginDetails(sc);
-        final Customer customer = r.saveCustomerDetails(loginDetails.get(0), loginDetails.get(1), loginDetails.get(2));
+    public temporaryShop() {
 
-        //hämta produkter
-        final List<CategoryMap> cm = r.getListOfCategoryMap();
+        //databas try
+        try {
 
-        //grupperar produkter utefter kategori i en hashmap
-        final Map<String, List<Shoe>> groupedMapOfShoes = cm.stream()
-                .collect(Collectors.groupingBy(categoryMap -> categoryMap.getCategory().getName(),
-                        Collectors.mapping(CategoryMap::getShoe, Collectors.toList())));
+            //Logga in kund
+            //IOEXCEPTION methods
+            final List<String> loginDetails = getLoginDetails(sc);
+            final Customer customer = r.saveCustomerDetails(loginDetails.get(0), loginDetails.get(1), loginDetails.get(2));
 
-        //be kund välja kategori
-        promptUserToChooseCategory(customer.getFirstName());
-        final int category = sc.nextInt();
+            //Hämtar produkter och mappar till kategori
+            final List<CategoryMap> cm = r.getListOfCategoryMap();
 
-        //filtrerar skor baserat på kategorival, spara i lista  och skriv ut resultatet
-        final List<Shoe> shoesByCategory = filterOnCategory(groupedMapOfShoes, category);
-        printListOfShoes(shoesByCategory);
+            //Grupperar produkter utefter kategori i en hashmap
+            final Map<String, List<Shoe>> groupedMapOfShoes = cm.stream()
+                    .collect(Collectors.groupingBy(categoryMap -> categoryMap.getCategory().getName(),
+                            Collectors.mapping(CategoryMap::getShoe, Collectors.toList())));
 
-        //be kund välja filter
-        promptCustomerToChooseFilter();
-        final int filter = sc.nextInt();
+            //be kund välja kategori
+            promptUserToChooseCategory(customer.getFirstName());
+            final int category = sc.nextInt();
 
-        System.out.print("ange " + filter + ": ");
-        final String searchWord = sc.next();
+            //filtrerar skor baserat på kategorival, spara i lista  och skriv ut resultatet
+            final List<Shoe> shoesByCategory = filterOnCategory(groupedMapOfShoes, category);
+            printListOfShoes(shoesByCategory);
 
-        final List<Shoe> shoesByAttribute = doFiltering(filter, searchWord, shoesByCategory);
-        System.out.println(shoesByAttribute.get(0));
-        printListOfShoes(shoesByAttribute);
-        System.out.println();
+            // Ber kund välja filter brand, color, size
+            int filter = 0;
+            String searchWord = "";
 
-        //hämtar id:t för första skon i sista listan
-        Shoe orderShoe = shoesByAttribute.get(0);
-        System.out.println(orderShoe.getId());
-        System.out.println();
+            try {
+                promptCustomerToChooseFilter();
+                filter = sc.nextInt();
+                System.out.print("ange " + filter + ": ");
+                searchWord = sc.next();
+            } catch (Exception e) {
+                System.out.println("Kunde inte läsa input");
+            }
 
-        //ber kund ange sko att beställa och sparar sko i skoobjekt
-        System.out.print("Vilken sko vill du beställa? Ange index: ");
-        final int shoeIndexToOrder = sc.nextInt();
-        final int correctIndex = shoeIndexToOrder;
-        Shoe shoeToOrder = getShoeToOrder(shoesByAttribute, correctIndex);
-        System.out.println("shoe to order " + shoeToOrder.getId());
-        final int getOrderId = r.getOrderIdIfCustomerHasOrder(customer.getId());
-        r.callAddToCart(getOrderId, customer.getId(), shoeToOrder.getId());
+            //Filtrerar skor på filterval och sökord samt skriver ut resultatet
+            final List<Shoe> shoesByAttribute = doFiltering(filter, searchWord, shoesByCategory);
+            printListOfShoes(shoesByAttribute);
+            System.out.println();
+
+            //Ber kund ange sko att beställa
+            System.out.print("Vilken sko vill du beställa? Ange index: ");
+            int shoeIndexToOrder = -1;
+            try {
+                shoeIndexToOrder = sc.nextInt();
+            } catch (Exception e) {
+                System.out.println("Felaktig input");
+            }
+
+            //Sparar val i skoobjekt och skriver ut vilken sko som ska beställas
+            Shoe shoeToOrder = getShoeToOrder(shoesByAttribute, shoeIndexToOrder);
+            System.out.println("Shoe to order " + shoeToOrder.getId());
+
+            //Hämtar aktuell kunds kundId och kallar på addToCart();
+            final int getOrderId = r.getOrderIdIfCustomerHasOrder(customer.getId());
+            r.callAddToCart(getOrderId, customer.getId(), shoeToOrder.getId());
+
+
+        } catch (IOException e) {
+            System.out.println("IOException - kan inte läsa från databas");
+        }
 
 
     }
 
-    //    filtering metod som innehåller filtreringen och tar in sökord och interface
+    //Filtreringsmetod som innehåller metod för filtrering och tar in sökord och interface
     public List<Shoe> doFiltering(int filter, String wordToSearchFor, List<Shoe> list) {
 
         List<Shoe> filteredShoes = new ArrayList<>();
@@ -116,17 +135,21 @@ public class temporaryShop {
     //printing methods - ändra utskrift till joining el dylikt
     public void printListOfShoes(List<Shoe> list) {
 
-        final List<Shoe> tempList = list.stream().filter(a -> a.getBalance()>0).toList();
+        final List<Shoe> tempList = list.stream().filter(a -> a.getBalance() > 0).toList();
 
         String result = IntStream.range(0, tempList.size())
                 .mapToObj(i -> (i + 1) + ". " + tempList.get(i).getBrand().getName()
                         + ", " + tempList.get(i).getModel() + ", " + tempList.get(i).getColor().getName()
                         + ", strl " + tempList.get(i).getSize().getEu()
                         + ", " + tempList.get(i).getPrice() + "kr, " + tempList.get(i).getBalance() + " st")
+
                 .collect(Collectors.joining("\n"));
-
-        System.out.println(result);
-
+        if (!result.isEmpty())
+            System.out.println(result);
+        else {
+            System.out.println("Inget resultat");
+            System.exit(22);
+        }
     }
 
 
