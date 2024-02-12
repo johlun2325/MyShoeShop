@@ -311,13 +311,11 @@ public class Repository {
                 final List<Customer> matchedCustomer = c.stream().filter(cu -> cu.getId() == customerId).toList();
                 if (matchedCustomer.size() == 1)
                     customer = matchedCustomer.get(0);
-                System.out.println(customer.getFirstName());
 
                 final int shoeId = rs.getInt("shoeId");
                 final List<Shoe> matchedShoe = s.stream().filter(sh -> sh.getId() == shoeId).toList();
                 if (matchedShoe.size() == 1)
                     shoe = matchedShoe.get(0);
-                System.out.println(shoe.getModel());
 
                 final Orders order = new Orders(
                         rs.getInt("orderId"),

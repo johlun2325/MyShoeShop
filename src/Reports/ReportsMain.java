@@ -2,12 +2,11 @@ package Reports;
 
 import Models.*;
 import Repository.Repository;
+import com.mysql.cj.x.protobuf.MysqlxCrud;
 import org.w3c.dom.ls.LSOutput;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -25,18 +24,43 @@ public class ReportsMain {
             (p, a) -> p.getShoe().getSize().getEu() == Integer.parseInt(a);
 
     public ReportsMain() throws IOException {
+        final Scanner sc = new Scanner(System.in);
 
         //läser in alla ordrar
         final List<OrderMap> orders = r.getMappingOfAllOrders();
 
-        getCustomersByProductBought(2, "ecco", orders);
-        System.out.println();
-        getNumberOfOrdersPerCustomer(orders);
-        System.out.println();
-        getTopSoldProducts(orders,3);
-        System.out.println();
+        System.out.print("Vilken rapport vill du generera\n" +
+                "1) Kunder baserat på produkts egenskap\n" +
+                "2) Antalet ordrar per kund\n" +
+                "3) Topplista, sålda produkter\n" +
+                "4) Totalsumma per kund\n" +
+                "5) Totalsumma per ort\n" +
+                "Välj: ");
+
+        int choice = 0;
+        choice = sc.nextInt();
+
+        if (choice != 0)
+            switch (choice) {
+                case 1 -> System.out.println();
+                case 2 -> System.out.println();
+                case 3 -> System.out.println();
+                case 4 -> System.out.println();
+                case 5 -> System.out.println();
+                default -> System.out.println("Du har inte gjort ett korrekt menyval, 1-5");
+
+            }
 
 
+//        getCustomersByProductBought(2, "ecco", orders);
+//        System.out.println();
+//        getNumberOfOrdersPerCustomer(orders);
+//        System.out.println();
+//        getTopSoldProducts(orders,3);
+//        System.out.println();
+//        getSumOfEachCustomer(orders);
+//        System.out.println();
+//        getSumByCustomerLocality(orders);
 
 
     }
@@ -44,17 +68,18 @@ public class ReportsMain {
     //rapport 1, filtrera fram kunder per produkt
     public void getCustomersByProductBought(int filter, String searchWord, List<OrderMap> list) throws IOException {
 
-        switch (filter){
+        switch (filter) {
             case 1 -> filterOrders(list, searchWord, fobya_color);
             case 2 -> filterOrders(list, searchWord, fobya_brand);
             case 3 -> filterOrders(list, searchWord, fobya_size);
         }
     }
-    public void filterOrders(List<OrderMap> list, String searchWord, FilterOrderByAttribute fobya){
+
+    public void filterOrders(List<OrderMap> list, String searchWord, FilterOrderByAttribute fobya) {
         list.stream()
                 .filter(a -> fobya.filterOrder(a, searchWord))
                 .map(p -> p.getOrder().getCustomer().getFirstName() + " "
-                        + p.getOrder().getCustomer().getLastName() + " "
+                        + p.getOrder().getCustomer().getLastName() + ", "
                         + p.getOrder().getCustomer().getAddress()).distinct()
                 .forEach(System.out::println);
     }
@@ -65,15 +90,16 @@ public class ReportsMain {
         // Grupperar: key - kunds fullständiga namn, value är antal ordrar
         Map<String, Long> ordersMappedPerCustomer =
                 listOfOrders.stream().collect(Collectors.groupingBy(
-                                o -> o.getOrder().getCustomer().getFirstName() + " " +
-                                        o.getOrder().getCustomer().getLastName(), Collectors.counting()
+                        o -> o.getOrder().getCustomer().getFirstName() + " " +
+                                o.getOrder().getCustomer().getLastName(), Collectors.counting()
                 ));
 
         //skriver ut key - value pairs
         ordersMappedPerCustomer.forEach(
-                (customerName, orderCount) -> System.out.println(customerName + ": " + orderCount));
+                (customerName, orderCount) -> System.out.println(customerName + ": " + orderCount + " st"));
 
     }
+
     //rapport 5, topplista
     public void getTopSoldProducts(List<OrderMap> list, int limit) {
 
@@ -87,25 +113,49 @@ public class ReportsMain {
         numberOfOrdersPerModel.entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(limit)
-                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue()));
+                .forEach(entry -> System.out.println(entry.getKey() + " " + entry.getValue() + " st"));
 
     }
 
-
     //rapport 3, summa per kund
-    public void getSumOfEachCustomer() {
+    public void getSumOfEachCustomer(List<OrderMap> list) {
         /*3. En rapport som listar alla kunder och hur mycket pengar varje kund,
         sammanlagt, har beställt för. Skriv ut varje kunds namn och summa.
     - samma som ovan, men summera nu priset per sko som kund köpt*/
 
+        Map<Customer, List<OrderMap>> mapByCustomer =
+                list.stream().collect(Collectors.groupingBy(
+                        o -> o.getOrder().getCustomer()
+                ));
+
+        mapByCustomer.forEach((customer, orderMaps) -> {
+            int totalSum = orderMaps.stream()
+                    .mapToInt(orderMap -> orderMap.getShoe().getPrice() * orderMap.getQuantity())
+                    .sum();
+
+            System.out.println(customer.getFirstName() + " " + customer.getLastName() + ": " + totalSum + " kr");
+        });
+
     }
 
     //rapport 4, summa per ort
-    public void getSumByCustomerLocality() {
-        /*4. En rapport som listar beställningsvärde per ort. Skriv ut orternas namn och summa.
-    - som ovan, men summera nu per kundernas ort*/
-    }
+    public void getSumByCustomerLocality(List<OrderMap> list) {
 
+        // grupperar utefter ort
+        Map<String, List<OrderMap>> mapByLocality =
+                list.stream().collect(Collectors.groupingBy(
+                        o -> o.getOrder().getCustomer().getLocality()
+                ));
+
+        // summerar beställningsvärdet för alla ordrar per ort och printar
+        mapByLocality.forEach((locality, orderMaps) -> {
+            int totalSum = orderMaps.stream()
+                    .mapToInt(orderMap -> orderMap.getShoe().getPrice() * orderMap.getQuantity())
+                    .sum();
+
+            System.out.println(locality + ": " + totalSum + " kr");
+        });
+    }
 
 
     public static void main(String[] args) throws IOException {
