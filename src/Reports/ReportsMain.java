@@ -2,9 +2,6 @@ package Reports;
 
 import Models.*;
 import Repository.Repository;
-import com.mysql.cj.x.protobuf.MysqlxCrud;
-import org.w3c.dom.ls.LSOutput;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +26,7 @@ public class ReportsMain {
         //läser in alla ordrar
         final List<OrderMap> orders = r.getMappingOfAllOrders();
 
-        System.out.print("Vilken rapport vill du generera\n" +
+        System.out.print("Vilken rapport vill du generera?\n" +
                 "1) Kunder baserat på produkts egenskap\n" +
                 "2) Antalet ordrar per kund\n" +
                 "3) Topplista, sålda produkter\n" +
@@ -37,27 +34,40 @@ public class ReportsMain {
                 "5) Totalsumma per ort\n" +
                 "Välj: ");
 
-        int choice = 0;
-        choice = sc.nextInt();
+        final int choice = sc.nextInt();
 
-        if (choice != 0)
+        System.out.println();
+        if (choice != 0) {
+
             switch (choice) {
-                case 1 -> System.out.println();
-                case 2 -> System.out.println();
-                case 3 -> System.out.println();
-                case 4 -> System.out.println();
-                case 5 -> System.out.println();
-                default -> System.out.println("Du har inte gjort ett korrekt menyval, 1-5");
+                case 1 -> {
+                    try {
+
+                        System.out.print("\n1) Färg\n2) Märke\n3)Storlek\nVälj: ");
+                        final int response = sc.nextInt();
+                        System.out.print("\nVänligen skriv det du vill söka på: ");
+                        final String searchWord = sc.next();
+                        getCustomersByProductBought(response, searchWord, orders);
+
+                    } catch (IOException e) {
+                        System.out.println("\nNågot gick fel");
+                    } catch (NumberFormatException ex) {
+                        System.out.println("\nFel input");
+                    } catch (Exception x) {
+                        System.out.println("\nOkänt fel inträffade");
+                    }
+                }
+                case 2 -> getNumberOfOrdersPerCustomer(orders);
+                case 3 -> getTopSoldProducts(orders, 3);
+                case 4 -> getSumOfEachCustomer(orders);
+                case 5 -> getSumByCustomerLocality(orders);
+                default -> System.out.println("\nDu har inte gjort ett korrekt menyval, 1-5");
 
             }
+        }
+        else
+            System.out.println("Du har inte angett ett val");
 
-
-//        getCustomersByProductBought(2, "ecco", orders);
-//        System.out.println();
-//        getNumberOfOrdersPerCustomer(orders);
-//        System.out.println();
-//        getTopSoldProducts(orders,3);
-//        System.out.println();
 //        getSumOfEachCustomer(orders);
 //        System.out.println();
 //        getSumByCustomerLocality(orders);
