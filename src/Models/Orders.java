@@ -6,6 +6,9 @@ public class Orders {
     private String date;
     private Customer customer; // när sätta?
 
+    public Orders() {
+    }
+
     public Orders(int id, String date, Customer customer) {
         this.id = id;
         this.date = date;

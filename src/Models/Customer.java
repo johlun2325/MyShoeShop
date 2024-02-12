@@ -11,6 +11,14 @@ public class Customer {
     public Customer() {
     }
 
+    public Customer(int id, String firstName, String lastName, String address, String locality) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.locality = locality;
+    }
+
     public int getId() {
         return id;
     }

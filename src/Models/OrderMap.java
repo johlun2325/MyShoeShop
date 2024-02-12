@@ -3,14 +3,14 @@ package Models;
 public class OrderMap {
 
     private int id;
-    private int orderId;
-    private int shoeId;
+    private Orders order;
+    private Shoe shoe;
     private int quantity;
 
-    public OrderMap(int id, int orderId, int shoeId, int quantity) {
+    public OrderMap(int id, Orders order, Shoe shoe, int quantity) {
         this.id = id;
-        this.orderId = orderId;
-        this.shoeId = shoeId;
+        this.order = order;
+        this.shoe = shoe;
         this.quantity = quantity;
     }
 
@@ -22,20 +22,20 @@ public class OrderMap {
         this.id = id;
     }
 
-    public int getOrderId() {
-        return orderId;
+    public Orders getOrder() {
+        return order;
     }
 
-    public void setOrderId(int orderId) {
-        this.orderId = orderId;
+    public void setOrder(Orders order) {
+        this.order = order;
     }
 
-    public int getShoeId() {
-        return shoeId;
+    public Shoe getShoe() {
+        return shoe;
     }
 
-    public void setShoeId(int shoeId) {
-        this.shoeId = shoeId;
+    public void setShoe(Shoe shoe) {
+        this.shoe = shoe;
     }
 
     public int getQuantity() {

@@ -10,6 +10,9 @@ public class Shoe {
     private Size size;
     private int balance;
 
+    public Shoe() {
+    }
+
     public Shoe(int id, String model, Brand brand, Color color, int price, Size size, int balance) {
         this.id = id;
         this.model = model;

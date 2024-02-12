@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Repository {
 
@@ -166,7 +167,7 @@ public class Repository {
 
     }
 
-    public int getOrderIdIfCustomerHasOrder (int customerId) throws IOException {
+    public int getOrderIdIfCustomerHasOrder(int customerId) throws IOException {
         prop.load(new FileInputStream(propertiesPath));
         final LocalDate currentDate = LocalDate.now();
 
@@ -192,4 +193,148 @@ public class Repository {
         }
         return -1;
     }
+
+    public List<Customer> getAllCustomers() throws IOException {
+        prop.load(new FileInputStream(propertiesPath));
+        List<Customer> listOfCustomers = new ArrayList<>();
+
+        try (Connection con = DriverManager.getConnection(
+                prop.getProperty("connectionString"),
+                prop.getProperty("username"),
+                prop.getProperty("password"));
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery("select * from customer");
+        ) {
+
+            while (rs.next()) {
+                //id, first, last, address, locality
+                final Customer customer = new Customer(
+                        rs.getInt("id"),
+                        rs.getString("firstName"),
+                        rs.getString("lastName"),
+                        rs.getString("address"),
+                        rs.getString("locality"));
+
+                listOfCustomers.add(customer);
+
+            }
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return listOfCustomers;
+    }
+
+
+    public List<Shoe> getAllShoes() throws IOException {
+        prop.load(new FileInputStream(propertiesPath));
+        List<Shoe> listOfShoes = new ArrayList<>();
+
+        try (Connection con = DriverManager.getConnection(
+                prop.getProperty("connectionString"),
+                prop.getProperty("username"),
+                prop.getProperty("password"));
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select shoe.id as ShoeId, shoe.modelName as ModelName, \n" +
+                             "brand.id as BrandId, brand.name as BrandName, \n" +
+                             "color.id as ColorId, color.name ColorName, shoe.price as Price, \n" +
+                             "size.id as SizeId, size.eu as Size, balance as Balance\n" +
+                             "from shoe\n" +
+                             "inner join brand on brand.id = shoe.brandid\n" +
+                             "inner join color on color.id = shoe.colorId\n" +
+                             "inner join size on size.id = shoe.sizeId;");
+        ) {
+
+            while (rs.next()) {
+
+                // ShoeId, ModelName, (brand), (color), Price, Balance
+                // BrandId, BrandName,
+                // ColorId, ColorName
+                // SizeId, SizeEu
+                final Brand b = new Brand(rs.getInt("BrandId"), rs.getString("BrandName"));
+                final Color c = new Color(rs.getInt("ColorId"), rs.getString("ColorName"));
+                final Size s = new Size(rs.getInt("SizeId"), rs.getInt("Size"));
+
+                final Shoe shoe = new Shoe(
+                        rs.getInt("ShoeId"),
+                        rs.getString("ModelName"),
+                        b, c,
+                        rs.getInt("Price"),
+                        s,
+                        rs.getInt("Balance"));
+
+                listOfShoes.add(shoe);
+            }
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return listOfShoes;
+    }
+
+    public List<OrderMap> getMappingOfAllOrders() throws IOException {
+        //läs in all relevant data för att visa upp produkter för kund
+        // skomodell, märke, färg, pris
+
+        prop.load(new FileInputStream(propertiesPath));
+        List<OrderMap> listOfOrdermaps = new ArrayList<>();
+        final List<Customer> c = getAllCustomers(); //läser från db
+        final List<Shoe> s = getAllShoes(); //läser från db
+
+        try (Connection con = DriverManager.getConnection(
+                prop.getProperty("connectionString"),
+                prop.getProperty("username"),
+                prop.getProperty("password"));
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "select ordermap.id as ordermapId, ordermap.quantity as quantity,\n" +
+                             "orders.id as orderId, orders.orderDate,\n" +
+                             "customer.id as customerId,\n" +
+                             "shoe.id as shoeId\n" +
+                             "from ordermap\n" +
+                             "inner join orders on orders.id = ordermap.orderid\n" +
+                             "inner join customer on customer.id = orders.customerid\n" +
+                             "inner join shoe on shoe.id = ordermap.shoeId;");
+        ) {
+
+              //lägg till sko/kund från lista med
+            Customer customer = new Customer();
+            Shoe shoe = new Shoe();
+
+            while (rs.next()) {
+                final int customerId = rs.getInt("customerId");
+                final List<Customer> matchedCustomer = c.stream().filter(cu -> cu.getId() == customerId).toList();
+                if (matchedCustomer.size() == 1)
+                    customer = matchedCustomer.get(0);
+
+                final int shoeId = rs.getInt("shoeId");
+                final List<Shoe> matchedShoe = getAllShoes();
+                if (matchedShoe.size() == 1)
+                    shoe = matchedShoe.get(0);
+
+                final Orders order = new Orders(
+                        rs.getInt("orderId"),
+                        rs.getString("orderDate"),
+                        customer);
+
+                final OrderMap orderMap = new OrderMap(
+                        rs.getInt("ordermapId"),
+                        order, shoe,
+                        rs.getInt("quantity"));
+
+                listOfOrdermaps.add(orderMap);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return listOfOrdermaps;
+
+    }
+
 }
