@@ -6,8 +6,9 @@ public class CategoryMap {
     private Category category;
     private Shoe shoe;
 
-    public CategoryMap() {
-
+    public CategoryMap(Category category, Shoe shoe) {
+        this.category = category;
+        this.shoe = shoe;
     }
 
     public Category getCategory() {

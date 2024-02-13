@@ -27,13 +27,14 @@ public class ReportsMain {
         //läser in alla ordrar
         final List<OrderMap> orders = r.getMappingOfAllOrders();
 
-        System.out.print("Vilken rapport vill du generera?\n" +
-                "1) Kunder baserat på produkts egenskap\n" +
-                "2) Antalet ordrar per kund\n" +
-                "3) Topplista, sålda produkter\n" +
-                "4) Totalsumma per kund\n" +
-                "5) Totalsumma per ort\n" +
-                "Välj: ");
+        System.out.print("""
+                Vilken rapport vill du generera?
+                1) Kunder baserat på produkts egenskap
+                2) Antalet ordrar per kund
+                3) Topplista, sålda produkter
+                4) Totalsumma per kund
+                5) Totalsumma per ort
+                Välj:\s""");
 
         int choice = -1;
         try {
@@ -97,7 +98,7 @@ public class ReportsMain {
     }
 
     //rapport 2, antal ordrar per kund
-    public void getNumberOfOrdersPerCustomer(List<OrderMap> listOfOrders) throws IOException {
+    public void getNumberOfOrdersPerCustomer(List<OrderMap> listOfOrders) {
 
         // Grupperar: key - kunds fullständiga namn, value är antal ordrar
         Map<String, Long> ordersMappedPerCustomer =
@@ -168,7 +169,6 @@ public class ReportsMain {
             System.out.println(locality + ": " + totalSum + " kr");
         });
     }
-
 
     public static void main(String[] args) throws IOException {
         new ReportsMain();

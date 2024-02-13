@@ -14,8 +14,6 @@ public class Repository {
 
     private final Properties prop = new Properties();
     private final String propertiesPath = "src/Repository/Settings.properties";
-    private List<Customer> allCustomers = new ArrayList<>();
-
     public boolean logInCustomer(String firstname, String lastname, String password) throws IOException {
         prop.load(new FileInputStream(propertiesPath));
 
@@ -27,7 +25,7 @@ public class Repository {
                      "select customer.firstname, customer.lastname, passwords.word \n" +
                              "from customer\n" +
                              "inner join passwords on customer.passwordid = passwords.id\n" +
-                             "where customer.firstname = ? and customer.lastname = ? and passwords.word = ?");
+                             "where customer.firstname = ? and customer.lastname = ? and passwords.word = ?")
         ) {
             stmt.setString(1, firstname);
             stmt.setString(2, lastname);
@@ -48,6 +46,7 @@ public class Repository {
             }
 
         } catch (SQLException e) {
+            System.out.println("Kunde inte läsa från databas");
             e.printStackTrace();
         }
         return false;
@@ -67,7 +66,7 @@ public class Repository {
                              "inner join passwords on customer.passwordId = passwords.id\n" +
                              "where customer.firstname = ?\n" +
                              "and customer.lastname = ?\n" +
-                             "and passwords.word = ?;");
+                             "and passwords.word = ?;")
         ) {
             stmt.setString(1, firstname);
             stmt.setString(2, lastname);
@@ -83,6 +82,7 @@ public class Repository {
             }
 
         } catch (SQLException e) {
+            System.out.println("Kunde inte läsa från databas");
             e.printStackTrace();
         }
 
@@ -113,25 +113,21 @@ public class Repository {
                              "inner join category on category.id = categoryMap.categoryid\n" +
                              "inner join brand on brand.id = shoe.brandid\n" +
                              "inner join color on color.id = shoe.colorId\n" +
-                             "inner join size on size.id = shoe.sizeId;");
+                             "inner join size on size.id = shoe.sizeId;")
         ) {
-
-            // ShoeId, ModelName, *BrandId, BrandName,
-            // ColorId, ColorName, Price, SizeId, Size, Balance
-            // CategoryId, CategoryName
 
             while (rs.next()) {
                 final Category category = new Category(rs.getInt("CategoryId"), rs.getString("CategoryName"));
                 final Brand brand = new Brand(rs.getInt("BrandId"), rs.getString("BrandName"));
                 final Color color = new Color(rs.getInt("ColorId"), rs.getString("ColorName"));
                 final Size size = new Size(rs.getInt("SizeId"), rs.getInt("Size"));
-                final CategoryMap cm = new CategoryMap();
                 final Shoe shoe = new Shoe(
                         rs.getInt("ShoeId"), rs.getString("ModelName"),
                         brand, color, rs.getInt("Price"), size, rs.getInt("Balance"));
 
-                cm.setCategory(category);
-                cm.setShoe(shoe);
+                final CategoryMap cm = new CategoryMap(category, shoe);
+//                cm.setCategory(category);
+//                cm.setShoe(shoe);
 
                 shoeCategoryMapping.add(cm);
 
@@ -151,7 +147,7 @@ public class Repository {
                 prop.getProperty("connectionString"),
                 prop.getProperty("username"),
                 prop.getProperty("password"));
-             CallableStatement stmt = c.prepareCall("call addToCart(?,?,?)");
+             CallableStatement stmt = c.prepareCall("call addToCart(?,?,?)")
         ) {
             stmt.setInt(1, orderId);
             stmt.setInt(2, customerId);
@@ -161,7 +157,7 @@ public class Repository {
             System.out.println("Beställningen har genomförts!");
 
         } catch (SQLException e) {
-
+            System.out.println(e.getMessage());
             throw new RuntimeException();
         }
 
@@ -176,7 +172,7 @@ public class Repository {
                 prop.getProperty("username"),
                 prop.getProperty("password"));
              PreparedStatement stmt = con.prepareStatement(
-                     "select id from orders where customerId = ? and orderDate = ?");
+                     "select id from orders where customerId = ? and orderDate = ?")
         ) {
             stmt.setInt(1, customerId);
             stmt.setString(2, String.valueOf(currentDate));
@@ -188,14 +184,14 @@ public class Repository {
 
 
         } catch (SQLException e) {
-            System.out.println("fel när kolla orders");
+            System.out.println("Kunde inte läsa från databas");
             e.printStackTrace();
         }
+        // if
         return -1;
     }
 
-
-    // metoder för att mappa ordrar
+    // Metoder för att mappa ordrar
     public List<Customer> getAllCustomers() throws IOException {
         prop.load(new FileInputStream(propertiesPath));
         List<Customer> listOfCustomers = new ArrayList<>();
@@ -205,7 +201,7 @@ public class Repository {
                 prop.getProperty("username"),
                 prop.getProperty("password"));
              Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery("select * from customer");
+             ResultSet rs = stmt.executeQuery("select * from customer")
         ) {
 
             while (rs.next()) {
@@ -246,7 +242,7 @@ public class Repository {
                              "from shoe\n" +
                              "inner join brand on brand.id = shoe.brandid\n" +
                              "inner join color on color.id = shoe.colorId\n" +
-                             "inner join size on size.id = shoe.sizeId;");
+                             "inner join size on size.id = shoe.sizeId;")
         ) {
 
             while (rs.next()) {
@@ -300,7 +296,7 @@ public class Repository {
                              "from ordermap\n" +
                              "inner join orders on orders.id = ordermap.orderid\n" +
                              "inner join customer on customer.id = orders.customerid\n" +
-                             "inner join shoe on shoe.id = ordermap.shoeId;");
+                             "inner join shoe on shoe.id = ordermap.shoeId;")
         ) {
 
             //lägg till sko/kund från lista med

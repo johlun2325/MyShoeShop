@@ -11,7 +11,8 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class temporaryShop {
+public class ShopMain {
+
     final Repository r = new Repository();
     final Scanner sc = new Scanner(System.in);
 
@@ -21,13 +22,12 @@ public class temporaryShop {
     final FilterOnAttribute foaSize = (shoe, word) -> shoe.getSize().getEu() == Integer.parseInt(word);
 
 
-    public temporaryShop() {
+    public ShopMain() {
 
         //databas try
         try {
 
             //Logga in kund
-            //IOEXCEPTION methods
             final List<String> loginDetails = getLoginDetails(sc);
             final Customer customer = r.saveCustomerDetails(loginDetails.get(0), loginDetails.get(1), loginDetails.get(2));
 
@@ -41,9 +41,9 @@ public class temporaryShop {
 
             //be kund välja kategori
             promptUserToChooseCategory(customer.getFirstName());
-            final int category = sc.nextInt();
+            final int category = sc.nextInt(); // hantera
 
-            //filtrerar skor baserat på kategorival, spara i lista  och skriv ut resultatet
+            //filtrerar skor baserat på kategorival, spara i lista och skriv ut resultatet
             final List<Shoe> shoesByCategory = filterOnCategory(groupedMapOfShoes, category);
             printListOfShoes(shoesByCategory);
 
@@ -54,7 +54,7 @@ public class temporaryShop {
             try {
                 promptCustomerToChooseFilter();
                 filter = sc.nextInt();
-                System.out.print("ange " + filter + ": ");
+                System.out.print("ange sökord: ");
                 searchWord = sc.next();
             } catch (Exception e) {
                 System.out.println("Kunde inte läsa input");
@@ -76,7 +76,7 @@ public class temporaryShop {
 
             //Sparar val i skoobjekt och skriver ut vilken sko som ska beställas
             Shoe shoeToOrder = getShoeToOrder(shoesByAttribute, shoeIndexToOrder);
-            System.out.println("Shoe to order " + shoeToOrder.getId());
+//            System.out.println("Shoe to order: " + shoeToOrder.getId()); // Kolla att rätt sko beställs
 
             //Hämtar aktuell kunds kundId och kallar på addToCart();
             final int getOrderId = r.getOrderIdIfCustomerHasOrder(customer.getId());
@@ -104,13 +104,12 @@ public class temporaryShop {
         return filteredShoes;
     }
 
-    //                final int size = Integer.parseInt(searchWord);
     public List<Shoe> filterOnAttribute(List<Shoe> list, String searchWord, FilterOnAttribute foa) {
         return list.stream().filter(a -> foa.filter(a, searchWord)).toList();
     }
 
     public Shoe getShoeToOrder(List<Shoe> list, int index) {
-        Shoe shoeToOrder = list.get(index - 1);
+        Shoe shoeToOrder = list.get(index-1);
         System.out.println(shoeToOrder.getId() + " "
                 + shoeToOrder.getBrand().getName() + " "
                 + shoeToOrder.getColor().getName());
@@ -206,7 +205,7 @@ public class temporaryShop {
         return r.logInCustomer(firstname.trim(), lastname.trim(), password.trim());
     }
 
-    public static void main(String[] args) throws IOException {
-        new temporaryShop();
+    public static void main(String[] args) {
+        new ShopMain();
     }
 }
