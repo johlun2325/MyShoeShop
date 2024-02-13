@@ -2,6 +2,7 @@ package Reports;
 
 import Models.*;
 import Repository.Repository;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +35,13 @@ public class ReportsMain {
                 "5) Totalsumma per ort\n" +
                 "Välj: ");
 
-        final int choice = sc.nextInt();
+        int choice = -1;
+        try {
+            choice = sc.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Fel format");
+            System.exit(22);
+        }
 
         System.out.println();
         if (choice != 0) {
@@ -64,13 +71,8 @@ public class ReportsMain {
                 default -> System.out.println("\nDu har inte gjort ett korrekt menyval, 1-5");
 
             }
-        }
-        else
+        } else
             System.out.println("Du har inte angett ett val");
-
-//        getSumOfEachCustomer(orders);
-//        System.out.println();
-//        getSumByCustomerLocality(orders);
 
 
     }
